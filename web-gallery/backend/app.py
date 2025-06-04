@@ -9,12 +9,15 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 @app.route('/media')
 def list_media():
-    files = os.listdir(UPLOAD_FOLDER)
-    print("DEBUG: files in USB:", files)  # debug print
-    files = sorted(files, key=lambda x: os.path.getctime(os.path.join(UPLOAD_FOLDER, x)), reverse=True)
-    start = int(request.args.get('start', 0))
-    count = int(request.args.get('count', 5))
-    return jsonify(files[start:start+count])
+    try:
+        files = os.listdir(UPLOAD_FOLDER)
+        files = [f for f in files if not f.startswith('._')]  # filtr skrytých macOS
+        files = sorted(files, key=lambda x: os.path.getmtime(os.path.join(UPLOAD_FOLDER, x)), reverse=True)
+        start = int(request.args.get('start', 0))
+        count = int(request.args.get('count', 5))
+        return jsonify(files[start:start+count])
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 @app.route('/media/<filename>')
