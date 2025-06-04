@@ -1,8 +1,10 @@
 import os
+os.environ['SDL_AUDIODRIVER'] = 'dummy'  # disable audio
 import time
 import pygame
 import cv2
 import sys
+
 
 MEDIA_FOLDER = "/media/usb"
 IMAGE_DISPLAY_TIME = 5  # seconds
