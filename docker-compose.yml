@@ -4,8 +4,10 @@ services:
     build: ./player
     volumes:
       - /media/usb:/media/usb:ro
+      - /tmp/.X11-unix:/tmp/.X11-unix   # připojení X socketu
     devices:
       - "/dev/fb0:/dev/fb0"
+      - "/dev/snd:/dev/snd"             # pro zvuk, pokud bude potřeba
     environment:
       - DISPLAY=:0
     restart: always
@@ -27,7 +29,7 @@ services:
     restart: always
 
   dns:
-    image: andyshinn/dnsmasq
+    image: pschmitt/dnsmasq-arm       # opraveno na ARM image
     volumes:
       - ./dns-server/dnsmasq.conf:/etc/dnsmasq.conf
     network_mode: "host"
