@@ -1,25 +1,36 @@
+version: '3.8'
 services:
-  web-gallery:
-    build: ./web-gallery
-    ports:
-      - "80:3000"
+  player:
+    build: ./player
     volumes:
-      - /media/usb:/mnt/usb
-    restart: always
-
-  media-loop:
-    image: alpine
+      - /media/usb:/media/usb:ro
     devices:
       - "/dev/fb0:/dev/fb0"
-    volumes:
-      - /media/usb:/mnt/usb
+    environment:
+      - DISPLAY=:0
     restart: always
-    command: ["sh", "-c", "while true; do sleep 3600; done"]
 
-  dns-server:
-    image: alpine
+  web-gallery-backend:
+    build: ./web-gallery/backend
+    volumes:
+      - /media/usb:/media/usb
+    ports:
+      - "5000:5000"
+    restart: always
+
+  web-gallery-frontend:
+    build: ./web-gallery/frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - web-gallery-backend
+    restart: always
+
+  dns:
+    image: andyshinn/dnsmasq
+    volumes:
+      - ./dns-server/dnsmasq.conf:/etc/dnsmasq.conf
     network_mode: "host"
     cap_add:
       - NET_ADMIN
     restart: always
-    command: ["sh", "-c", "while true; do sleep 3600; done"]

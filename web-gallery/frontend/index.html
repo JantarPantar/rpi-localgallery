@@ -1,56 +1,45 @@
+<!-- web-gallery/frontend/index.html -->
 <!DOCTYPE html>
 <html>
 <head>
   <title>BrosCamp Gallery</title>
   <style>
-    body { font-family: sans-serif; padding: 20px; }
-    .gallery { display: flex; flex-wrap: wrap; gap: 10px; }
-    .item img, .item video { width: 200px; height: auto; }
-    .upload { margin-bottom: 20px; }
+    body { font-family: sans-serif; padding: 2em; }
+    img, video { max-width: 300px; margin: 1em; display: block; }
   </style>
 </head>
 <body>
-  <h1>BrosCamp Gallery</h1>
-  <div class="upload">
-    <input type="file" id="fileInput">
-    <button onclick="upload()">Upload</button>
-  </div>
-  <div class="gallery" id="gallery"></div>
-
+  <h1>Galerie</h1>
+  <div id="gallery"></div>
+  <input type="file" id="upload" />
   <script>
-    let page = 0;
-    async function loadPage() {
-      const res = await fetch(`/media/list?page=${page}`);
+    let start = 0;
+    async function loadMore() {
+      const res = await fetch(`/media?start=${start}&count=5`);
       const files = await res.json();
-      const gallery = document.getElementById('gallery');
-
-      for (const file of files) {
-        const ext = file.split('.').pop().toLowerCase();
-        const div = document.createElement('div');
-        div.className = 'item';
-        if (["mp4","webm","mov"].includes(ext)) {
-          div.innerHTML = `<video controls src="/${file}"></video>`;
-        } else {
-          div.innerHTML = `<a href="/${file}" download><img src="/${file}" alt="img"></a>`;
-        }
-        gallery.appendChild(div);
+      for (const f of files) {
+        const el = document.createElement(f.match(/\\.(mp4|mov)$/) ? 'video' : 'img');
+        el.src = `/media/${f}`;
+        if (el.tagName === 'VIDEO') el.controls = true;
+        document.getElementById('gallery').appendChild(el);
       }
-      if (files.length > 0) page++;
+      start += 5;
     }
-
-    function upload() {
-      const file = document.getElementById('fileInput').files[0];
+    loadMore();
+    window.onscroll = () => {
+      if (window.innerHeight + window.scrollY >= document.body.offsetHeight) {
+        loadMore();
+      }
+    };
+    document.getElementById('upload').onchange = async (e) => {
+      const file = e.target.files[0];
       const form = new FormData();
       form.append('file', file);
-      fetch('/upload', { method: 'POST', body: form })
-        .then(() => { page = 0; document.getElementById('gallery').innerHTML = ''; loadPage(); });
-    }
-
-    window.addEventListener('scroll', () => {
-      if (window.innerHeight + window.scrollY >= document.body.offsetHeight) loadPage();
-    });
-
-    loadPage();
+      await fetch('/upload', { method: 'POST', body: form });
+      start = 0;
+      document.getElementById('gallery').innerHTML = '';
+      loadMore();
+    };
   </script>
 </body>
 </html>
