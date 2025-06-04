@@ -1,6 +1,7 @@
 import os
-os.environ['SDL_AUDIODRIVER'] = 'dummy'  # disable audio
-os.environ['SDL_VIDEODRIVER'] = 'fbcon'
+os.environ["SDL_VIDEODRIVER"] = "fbcon"
+os.environ["SDL_FBDEV"] = "/dev/fb0"
+os.environ['SDL_AUDIODRIVER'] = 'dummy' 
 import time
 import pygame
 import cv2

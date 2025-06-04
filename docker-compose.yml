@@ -7,10 +7,10 @@ services:
       - /tmp/runtime-dir:/tmp/runtime-dir
     devices:
       - "/dev/fb0:/dev/fb0"
-      - "/dev/snd:/dev/snd"
     environment:
-      - DISPLAY=:0
-      - XDG_RUNTIME_DIR=/tmp/runtime-dir
+      - SDL_VIDEODRIVER=fbcon
+      - SDL_FBDEV=/dev/fb0
+      - SDL_AUDIODRIVER=dummy
     restart: always
 
 
