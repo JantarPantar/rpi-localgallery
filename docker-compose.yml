@@ -3,8 +3,6 @@ services:
     build: ./player
     volumes:
       - /media/usb:/media/usb:ro
-      - /tmp/.X11-unix:/tmp/.X11-unix
-      - /tmp/runtime-dir:/tmp/runtime-dir
     devices:
       - "/dev/fb0:/dev/fb0"
     environment:
@@ -12,7 +10,10 @@ services:
       - SDL_FBDEV=/dev/fb0
       - SDL_AUDIODRIVER=dummy
     privileged: true
+    stdin_open: true
+    tty: true
     restart: always
+
 
 
   web-gallery-backend:

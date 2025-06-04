@@ -79,6 +79,7 @@ def play_video(path):
 
 def main():
     pygame.init()
+    pygame.display.init()
     screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
     pygame.display.set_caption("Media Player")
 
