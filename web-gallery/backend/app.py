@@ -1,10 +1,12 @@
 # web-gallery/backend/app.py
 from flask import Flask, request, send_from_directory, jsonify
+from flask_cors import CORS
 import os
 from werkzeug.utils import secure_filename
 
 UPLOAD_FOLDER = '/media/usb'
 app = Flask(__name__)
+CORS(app)  # <---- přidá CORS
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 @app.route('/media')
