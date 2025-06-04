@@ -3,13 +3,16 @@ services:
     build: ./player
     volumes:
       - /media/usb:/media/usb:ro
-      - /tmp/.X11-unix:/tmp/.X11-unix   # připojení X socketu
+      - /tmp/.X11-unix:/tmp/.X11-unix
+      - /tmp/runtime-dir:/tmp/runtime-dir
     devices:
       - "/dev/fb0:/dev/fb0"
-      - "/dev/snd:/dev/snd"             # pro zvuk, pokud bude potřeba
+      - "/dev/snd:/dev/snd"
     environment:
       - DISPLAY=:0
+      - XDG_RUNTIME_DIR=/tmp/runtime-dir
     restart: always
+
 
   web-gallery-backend:
     build: ./web-gallery/backend
