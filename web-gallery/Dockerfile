@@ -1,7 +1,11 @@
-FROM node:20-alpine
+FROM node:18-alpine
 WORKDIR /app
-COPY backend/package*.json ./
-RUN npm install
-COPY backend/ ./
-EXPOSE 3000
-CMD [ "npm", "start" ]
+
+COPY backend/package.json backend/package-lock.json ./backend/
+RUN cd backend && npm install
+
+COPY backend ./backend
+COPY frontend ./frontend
+
+WORKDIR /app/backend
+CMD ["node", "server.js"]

@@ -15,6 +15,6 @@ fi
 
 # Build a spuštění
 echo "🔨 Stavím a spouštím Docker kontejner..."
-docker-compose up --build -d
+docker compose up --build -d
 
 echo "✅ Aplikace běží na http://localhost nebo http://<IP-raspberry-pi>"
