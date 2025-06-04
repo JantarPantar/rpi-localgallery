@@ -1,7 +1,6 @@
-version: '3.7'
 services:
   media-loop:
-    build: ./media-loop
+    image: alpine
     devices:
       - "/dev/fb0:/dev/fb0"
     volumes:
@@ -17,7 +16,7 @@ services:
     restart: always
 
   dns-server:
-    build: ./dns-server
+    image: alpine
     network_mode: "host"
     cap_add:
       - NET_ADMIN
