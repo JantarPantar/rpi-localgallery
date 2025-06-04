@@ -5,7 +5,7 @@ set -e
 
 # Cesta k USB disku
 USB_MOUNT="/media/usb"
-
+ 
 # Kontrola připojení USB disku
 if [ ! -d "$USB_MOUNT" ]; then
   echo "❌ USB disk není připojen do $USB_MOUNT"
