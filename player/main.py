@@ -2,6 +2,7 @@ import os
 import time
 import pygame
 import cv2
+import sys
 
 MEDIA_FOLDER = "/media/usb"
 IMAGE_DISPLAY_TIME = 5  # seconds
@@ -18,23 +19,31 @@ def get_files():
         print(f"Error reading media folder: {e}")
         return []
 
+def handle_events():
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            sys.exit()
+        elif event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_ESCAPE:
+                pygame.quit()
+                sys.exit()
+
 def display_image(screen, path):
     print(f"Displaying image: {path}")
     try:
         image = pygame.image.load(path)
         image = pygame.transform.scale(image, screen.get_size())
-        for alpha in range(0, 255, 15):
+        for alpha in range(0, 256, 25):
+            handle_events()
             image.set_alpha(alpha)
             screen.fill((0, 0, 0))
             screen.blit(image, (0, 0))
             pygame.display.flip()
-            time.sleep(0.01)
+            pygame.time.wait(10)
         start_time = time.time()
         while time.time() - start_time < IMAGE_DISPLAY_TIME:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    pygame.quit()
-                    exit()
+            handle_events()
             pygame.time.wait(100)
     except Exception as e:
         print(f"Failed to display image {path}: {e}")
@@ -47,23 +56,18 @@ def play_video(path):
         return
     screen = pygame.display.get_surface()
     fps = cap.get(cv2.CAP_PROP_FPS)
-    if fps == 0:
+    if fps <= 0 or fps > 120:
         fps = 25  # fallback FPS
     delay = int(1000 / fps)
 
     while cap.isOpened():
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                cap.release()
-                pygame.quit()
-                exit()
-
+        handle_events()
         ret, frame = cap.read()
         if not ret:
             break
         frame = cv2.resize(frame, (screen.get_width(), screen.get_height()))
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        surface = pygame.surfarray.make_surface(frame.swapaxes(0,1))
+        surface = pygame.surfarray.make_surface(frame.swapaxes(0, 1))
         screen.blit(surface, (0, 0))
         pygame.display.flip()
         pygame.time.delay(delay)
