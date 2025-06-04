@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>BrosCamp Gallery</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; }
+    .gallery { display: flex; flex-wrap: wrap; gap: 10px; }
+    .item img, .item video { width: 200px; height: auto; }
+    .upload { margin-bottom: 20px; }
+  </style>
+</head>
+<body>
+  <h1>BrosCamp Gallery</h1>
+  <div class="upload">
+    <input type="file" id="fileInput">
+    <button onclick="upload()">Upload</button>
+  </div>
+  <div class="gallery" id="gallery"></div>
+
+  <script>
+    let page = 0;
+    async function loadPage() {
+      const res = await fetch(`/media/list?page=${page}`);
+      const files = await res.json();
+      const gallery = document.getElementById('gallery');
+
+      for (const file of files) {
+        const ext = file.split('.').pop().toLowerCase();
+        const div = document.createElement('div');
+        div.className = 'item';
+        if (["mp4","webm","mov"].includes(ext)) {
+          div.innerHTML = `<video controls src="/${file}"></video>`;
+        } else {
+          div.innerHTML = `<a href="/${file}" download><img src="/${file}" alt="img"></a>`;
+        }
+        gallery.appendChild(div);
+      }
+      if (files.length > 0) page++;
+    }
+
+    function upload() {
+      const file = document.getElementById('fileInput').files[0];
+      const form = new FormData();
+      form.append('file', file);
+      fetch('/upload', { method: 'POST', body: form })
+        .then(() => { page = 0; document.getElementById('gallery').innerHTML = ''; loadPage(); });
+    }
+
+    window.addEventListener('scroll', () => {
+      if (window.innerHeight + window.scrollY >= document.body.offsetHeight) loadPage();
+    });
+
+    loadPage();
+  </script>
+</body>
+</html>

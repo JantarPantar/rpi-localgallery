@@ -1,0 +1,24 @@
+version: '3.7'
+services:
+  media-loop:
+    build: ./media-loop
+    devices:
+      - "/dev/fb0:/dev/fb0"
+    volumes:
+      - /media/usb:/mnt/usb
+    restart: always
+
+  web-gallery:
+    build: ./web-gallery/backend
+    ports:
+      - "80:3000"
+    volumes:
+      - /media/usb:/mnt/usb
+    restart: always
+
+  dns-server:
+    build: ./dns-server
+    network_mode: "host"
+    cap_add:
+      - NET_ADMIN
+    restart: always
