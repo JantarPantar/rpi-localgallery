@@ -1,12 +1,4 @@
 services:
-  media-loop:
-    image: alpine
-    devices:
-      - "/dev/fb0:/dev/fb0"
-    volumes:
-      - /media/usb:/mnt/usb
-    restart: always
-
   web-gallery:
     build: ./web-gallery
     ports:
@@ -15,9 +7,19 @@ services:
       - /media/usb:/mnt/usb
     restart: always
 
+  media-loop:
+    image: alpine
+    devices:
+      - "/dev/fb0:/dev/fb0"
+    volumes:
+      - /media/usb:/mnt/usb
+    restart: always
+    command: ["sh", "-c", "while true; do sleep 3600; done"]
+
   dns-server:
     image: alpine
     network_mode: "host"
     cap_add:
       - NET_ADMIN
     restart: always
+    command: ["sh", "-c", "while true; do sleep 3600; done"]
