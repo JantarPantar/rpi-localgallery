@@ -11,6 +11,7 @@ services:
       - SDL_VIDEODRIVER=fbcon
       - SDL_FBDEV=/dev/fb0
       - SDL_AUDIODRIVER=dummy
+    privileged: true
     restart: always
 
 
