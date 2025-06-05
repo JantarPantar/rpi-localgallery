@@ -4,174 +4,37 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>BrosCamp Gallery</title>
-  <style>
-    /* Reset a základ */
-    body, html {
-      margin: 0; padding: 0; height: 100%;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: #f0f4f8;
-      color: #333;
-      display: flex;
-      flex-direction: column;
-      height: 100vh;
-      overflow: hidden;
-    }
-
-    /* Navbar */
-    nav {
-      background-color: #336699;
-      color: white;
-      padding: 1em;
-      font-size: 1.4em;
-      font-weight: 600;
-      text-align: center;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-      flex-shrink: 0;
-    }
-
-    /* Galerie kontejner */
-    #gallery {
-      flex-grow: 1;
-      overflow-y: auto;
-      padding: 1em;
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 12px;
-      background: white;
-    }
-
-    /* Obrázky a videa */
-    img, video {
-      max-width: 45vw;
-      border-radius: 8px;
-      box-shadow: 0 2px 6px rgb(0 0 0 / 0.1);
-      display: block;
-    }
-
-    video {
-      max-height: 250px;
-    }
-
-    /* Plovoucí tlačítko + */
-    #upload-btn {
-      position: fixed;
-      right: 20px;
-      bottom: 20px;
-      background-color: #336699;
-      border-radius: 50%;
-      width: 60px;
-      height: 60px;
-      border: none;
-      color: white;
-      font-size: 2.5em;
-      cursor: pointer;
-      box-shadow: 0 4px 10px rgba(51, 102, 153, 0.4);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 1000;
-      transition: background-color 0.3s ease;
-    }
-
-    #upload-btn:hover {
-      background-color: #254d73;
-    }
-
-    /* Skrytý input */
-    #upload {
-      display: none;
-    }
-  </style>
+  <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
 
-  <nav>BrosCamp Gallery</nav>
+  <nav class="navbar">
+    <div class="logo-text">BrosCamp Gallery</div>
+  </nav>
 
-  <div id="gallery" tabindex="0" aria-label="Galerie médií"></div>
+  <main class="gallery-container" tabindex="0" aria-label="Galerie médií">
+    <div id="galleryGrid" class="gallery-grid">
+      <div class="empty-gallery" id="emptyMessage">
+        <p>Žádná média k zobrazení.</p>
+      </div>
+    </div>
+  </main>
 
-  <!-- Skrytý input pro upload -->
-  <input type="file" id="upload" accept="image/*,video/mp4,video/quicktime" />
+  <!-- Modal pro detail (pro videa i fotky) -->
+  <div class="modal" id="mediaModal" aria-hidden="true" role="dialog" aria-modal="true">
+    <button class="close-btn" id="modalCloseBtn" aria-label="Zavřít">×</button>
+    <div class="modal-content" id="modalContent"></div>
+    <div class="modal-controls">
+      <button class="control-btn" id="prevBtn" aria-label="Předchozí">‹</button>
+      <button class="control-btn" id="downloadBtn" aria-label="Stáhnout">⬇</button>
+      <button class="control-btn" id="nextBtn" aria-label="Další">›</button>
+    </div>
+  </div>
 
-  <!-- Plovoucí tlačítko pro upload -->
-  <button id="upload-btn" aria-label="Přidat fotografii nebo video">+</button>
+  <!-- Tlačítko pro upload -->
+  <button class="add-photo-btn" id="uploadBtn" aria-label="Přidat fotografii nebo video">+</button>
+  <input type="file" id="fileInput" class="file-input" accept="image/*,video/mp4,video/quicktime" />
 
-  <script>
-    const API_BASE = 'http://192.168.1.113:5000'; // Změň podle potřeby
-    let start = 0;
-    const count = 5;
-
-    const gallery = document.getElementById('gallery');
-    const uploadInput = document.getElementById('upload');
-    const uploadBtn = document.getElementById('upload-btn');
-
-    async function loadMore() {
-      try {
-        const res = await fetch(`${API_BASE}/media?start=${start}&count=${count}`);
-        if (!res.ok) throw new Error('Chyba při načítání médií');
-        const files = await res.json();
-
-        if (files.length === 0 && start === 0) {
-          gallery.innerHTML = '<p style="color:#666;">Žádná média k zobrazení.</p>';
-          return;
-        }
-
-        for (const f of files) {
-          const isVideo = /\.(mp4|mov)$/i.test(f);
-          const el = document.createElement(isVideo ? 'video' : 'img');
-          el.src = `${API_BASE}/media/${encodeURIComponent(f)}`;
-          if (isVideo) {
-            el.controls = true;
-            el.preload = 'metadata';
-          }
-          gallery.appendChild(el);
-        }
-        start += count;
-      } catch (e) {
-        console.error(e);
-      }
-    }
-
-    // Načíst první várku
-    loadMore();
-
-    // Detekce scrollu v galerii (místo window, aby to bylo v rámci galerie)
-    gallery.addEventListener('scroll', () => {
-      if (gallery.scrollTop + gallery.clientHeight >= gallery.scrollHeight - 10) {
-        loadMore();
-      }
-    });
-
-    // Kliknutí na plovoucí tlačítko otevře input
-    uploadBtn.addEventListener('click', () => uploadInput.click());
-
-    // Po vybrání souboru nahrát
-    uploadInput.addEventListener('change', async () => {
-      const file = uploadInput.files[0];
-      if (!file) return;
-
-      const form = new FormData();
-      form.append('file', file);
-
-      uploadBtn.disabled = true;
-      uploadBtn.textContent = '⏳';
-
-      try {
-        const res = await fetch(`${API_BASE}/upload`, { method: 'POST', body: form });
-        if (!res.ok) throw new Error('Upload selhal');
-        // Po uploadu refresh galerie
-        start = 0;
-        gallery.innerHTML = '';
-        await loadMore();
-      } catch (e) {
-        alert('Nahrání se nezdařilo. Zkus to prosím znovu.');
-        console.error(e);
-      } finally {
-        uploadBtn.disabled = false;
-        uploadBtn.textContent = '+';
-        uploadInput.value = '';
-      }
-    });
-  </script>
+  <script src="gallery.js"></script>
 </body>
 </html>
