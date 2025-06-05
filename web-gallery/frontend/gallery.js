@@ -1,4 +1,4 @@
-const API_BASE = 'http://192.168.1.113:5000'; // uprav dle potřeby
+const API_BASE = 'http://192.168.1.117:5000'; // uprav dle potřeby
 const galleryGrid = document.getElementById('galleryGrid');
 const emptyMessage = document.getElementById('emptyMessage');
 const uploadBtn = document.getElementById('uploadBtn');
