@@ -2,23 +2,31 @@ FROM python:3.11-slim
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Instalace všech potřebných balíčků
+# Instalace základních závislostí
 RUN apt-get update && apt-get install -y \
-    # SDL2 a závislosti
-    libsdl2-dev libsdl2-image-dev libsdl2-mixer-2.0-0 libsdl2-ttf-2.0-0 \
-    # Video a audio
+    # SDL2 základní balíčky
+    libsdl2-dev libsdl2-image-dev libsdl2-ttf-2.0-0 \
+    # Video knihovny
     libavcodec-dev libavformat-dev libswscale-dev \
+    # Grafické knihovny
     libfreetype6-dev libjpeg-dev libpng-dev \
-    # Pro framebuffer a DRM
+    # DRM pro hardware akceleraci
     libdrm2 libdrm-dev \
-    # OpenCV
-    python3-opencv \
     # Systémové nástroje
-    ffmpeg fbset \
+    ffmpeg \
     # Fonty
-    fonts-dejavu-core fonts-liberation \
+    fonts-dejavu-core \
     # Debug nástroje
-    strace ltrace \
+    strace \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Pokus o instalaci volitelných balíčků
+RUN apt-get update && apt-get install -y \
+    libsdl2-mixer-2.0-0 \
+    python3-opencv \
+    fbset \
+    fonts-liberation \
+    2>/dev/null || true \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Python balíčky
