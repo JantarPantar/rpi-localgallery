@@ -4,6 +4,7 @@ import pygame
 import cv2
 import sys
 import qrcode
+import subprocess
 from io import BytesIO
 
 # Použít nastavení z proměnných prostředí nebo výchozí hodnoty pro CLI režim
@@ -26,6 +27,21 @@ def generate_qr_code(url):
     buffer.seek(0)
     return pygame.image.load(buffer, "qr.png")
 
+
+def get_fb_resolution():
+    try:
+        out = subprocess.check_output("fbset -s", shell=True).decode()
+        for line in out.splitlines():
+            if line.strip().startswith('mode'):
+                res = line.strip().split('"')[1]
+                width, height = map(int, res.split('x'))
+                print(f"Framebuffer resolution detected: {width}x{height}")
+                return width, height
+    except Exception as e:
+        print(f"Nelze zjistit rozlišení framebufferu: {e}")
+    return 1280, 720  # fallback
+
+
 def get_files():
     supported_images = ('.jpg', '.jpeg', '.png', '.bmp')
     supported_videos = ('.mp4', '.mov', '.avi', '.mkv')
@@ -38,6 +54,7 @@ def get_files():
         print(f"Chyba při načítání složky: {e}")
         return []
 
+
 def handle_events():
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -46,6 +63,7 @@ def handle_events():
         elif event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
             pygame.quit()
             sys.exit()
+
 
 def draw_sidebar(screen, qr_img, font):
     screen_width, screen_height = screen.get_size()
@@ -75,10 +93,12 @@ def draw_sidebar(screen, qr_img, font):
         screen.blit(text_surface, (screen_width - sidebar_width + 20, y))
         y += font.get_linesize() + 2
 
+
 def draw_watermark(surface, logo_img):
     logo = pygame.transform.scale(logo_img, (100, 100))
     logo.set_alpha(128)
     surface.blit(logo, (10, 10))
+
 
 def display_image(screen, path, qr_img, logo_img, font):
     print(f"Zobrazuji obrázek: {path}")
@@ -111,6 +131,7 @@ def display_image(screen, path, qr_img, logo_img, font):
             pygame.time.wait(100)
     except Exception as e:
         print(f"Chyba při zobrazení obrázku: {e}")
+
 
 def play_video(path, qr_img, logo_img, font):
     print(f"Přehrávám video: {path}")
@@ -146,10 +167,18 @@ def play_video(path, qr_img, logo_img, font):
         pygame.time.delay(delay)
     cap.release()
 
+
 def main():
     pygame.init()
     pygame.display.set_caption("Galerie")
-    screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
+
+    width, height = get_fb_resolution()
+    try:
+        screen = pygame.display.set_mode((width, height), pygame.FULLSCREEN)
+    except pygame.error as e:
+        print(f"Chyba při inicializaci display: {e}")
+        sys.exit(1)
+
     font = pygame.font.SysFont("Arial", 20)
 
     qr_img = generate_qr_code(QR_SSID)
@@ -166,6 +195,7 @@ def main():
                 display_image(screen, path, qr_img, logo_img, font)
             elif path.lower().endswith(('.mp4', '.mov', '.avi', '.mkv')):
                 play_video(path, qr_img, logo_img, font)
+
 
 if __name__ == '__main__':
     main()
