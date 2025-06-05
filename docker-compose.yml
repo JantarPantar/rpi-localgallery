@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   player:
     build: ./player
@@ -15,8 +17,6 @@ services:
     stdin_open: true
     tty: true
     restart: always
-
-
 
   web-gallery-backend:
     build: ./web-gallery/backend
@@ -36,7 +36,7 @@ services:
 
   dns:
     build: ./dns-server
-    network_mode: "host"
+    network_mode: "host"     # nutné pro správnou funkci dnsmasq
     cap_add:
       - NET_ADMIN
     restart: always
