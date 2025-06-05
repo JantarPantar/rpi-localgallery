@@ -7,9 +7,11 @@ services:
       - /media/usb:/media/usb:ro
       - /dev:/dev                       # přístup ke framebufferu a dalším zařízením
     devices:
-      - "/dev/fb0:/dev/fb0"
+      - /dev/fb0:/dev/fb0
+      - /dev/dri:/dev/dri
     environment:
       - SDL_VIDEODRIVER=fbcon
+      - SDL_VIDEODRIVER=kmsdrm
       - SDL_FBDEV=/dev/fb0
       - SDL_AUDIODRIVER=dummy
     privileged: true
