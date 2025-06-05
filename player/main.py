@@ -6,14 +6,15 @@ import sys
 import qrcode
 from io import BytesIO
 
-# Nastavení prostředí pro X11
-os.environ["SDL_VIDEODRIVER"] = "x11"
-os.environ["SDL_AUDIODRIVER"] = "dummy"
+# Použít nastavení z proměnných prostředí nebo výchozí hodnoty pro CLI režim
+os.environ["SDL_VIDEODRIVER"] = os.environ.get("SDL_VIDEODRIVER", "fbcon")
+os.environ["SDL_AUDIODRIVER"] = os.environ.get("SDL_AUDIODRIVER", "dummy")
 
 MEDIA_FOLDER = "/media/usb"
 IMAGE_DISPLAY_TIME = 5  # sekund
 QR_SSID = "WIFI:T:nopass;S:bros.photo;"
 WATERMARK_PATH = "/app/logo.png"
+
 
 def generate_qr_code(url):
     qr = qrcode.QRCode(box_size=2, border=1)
