@@ -26,6 +26,17 @@ def list_media():
 def get_file(filename):
     return send_from_directory(UPLOAD_FOLDER, filename)
 
+@app.route('/delete', methods=['POST'])
+def delete_files():
+    data = request.get_json()
+    deleted = []
+    for filename in data.get('files', []):
+        path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        if os.path.exists(path):
+            os.remove(path)
+            deleted.append(filename)
+    return jsonify({"deleted": deleted}), 200
+
 @app.route('/upload', methods=['POST'])
 def upload_file():
     if 'file' not in request.files:

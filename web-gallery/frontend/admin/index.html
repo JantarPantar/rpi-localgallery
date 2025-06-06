@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Yehlas Admin - Správa médií</title>
+  <style>
+    /* Základní reset a font */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      height: 100vh;
+      display: flex;
+      background: linear-gradient(135deg, #ffd700 0%, #ffb347 100%);
+      color: #333;
+    }
+    /* Levý sidebar */
+    .sidebar {
+      width: 25%;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(20px);
+      padding: 40px 30px;
+      box-shadow: -5px 0 30px rgba(0,0,0,0.1);
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      align-items: center;
+    }
+    .logo h1 {
+      color: #ff8c00;
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+    .logo p {
+      color: #666;
+      font-weight: 300;
+      margin-bottom: 30px;
+      text-align: center;
+      font-size: 1rem;
+    }
+    /* Hlavní obsah - galerie a akce */
+    .main-content {
+      width: 75%;
+      padding: 40px 30px;
+      overflow-y: auto;
+    }
+    /* Upload a akce */
+    #uploadInput {
+      width: 100%;
+      padding: 10px;
+      border-radius: 15px;
+      border: 2px solid #ff8c00;
+      font-size: 1rem;
+      margin-bottom: 15px;
+      background: white;
+      cursor: pointer;
+    }
+    button {
+      background: linear-gradient(135deg, #ffd700 0%, #ff8c00 100%);
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      font-weight: 700;
+      font-size: 1rem;
+      border-radius: 15px;
+      box-shadow: 0 10px 30px rgba(255, 215, 0, 0.4);
+      cursor: pointer;
+      margin-right: 10px;
+      transition: background 0.3s ease;
+    }
+    button:hover {
+      background: linear-gradient(135deg, #ffb700 0%, #ff7000 100%);
+    }
+    .actions {
+      margin-top: 20px;
+      text-align: left;
+    }
+    #status {
+      font-weight: 600;
+      margin-left: 10px;
+      color: #444;
+    }
+    /* Galerie grid */
+    .gallery {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 20px;
+      margin-top: 20px;
+    }
+    .media-item {
+      position: relative;
+      cursor: pointer;
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 0 40px rgba(255, 215, 0, 0.3);
+      border: 4px solid transparent;
+      transition: border-color 0.3s ease;
+      background: white;
+    }
+    .media-item.selected {
+      border-color: red;
+    }
+    img, video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 20px;
+      user-select: none;
+    }
+    video {
+      outline: none;
+    }
+    /* Scrollbar styl */
+    .main-content::-webkit-scrollbar {
+      width: 10px;
+    }
+    .main-content::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 5px;
+    }
+    .main-content::-webkit-scrollbar-thumb {
+      background: #ff8c00;
+      border-radius: 5px;
+    }
+
+    @media (max-width: 900px) {
+      body {
+        flex-direction: column;
+      }
+      .sidebar, .main-content {
+        width: 100%;
+        height: auto;
+        padding: 20px;
+      }
+      .gallery {
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      }
+      #uploadInput, button {
+        width: 100%;
+        margin: 8px 0;
+      }
+      .actions {
+        text-align: center;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="sidebar">
+    <div class="logo">
+      <h1>Yehlas Admin</h1>
+      <p>Správa fotek a videí</p>
+    </div>
+    <input id="uploadInput" type="file" multiple accept="image/*,video/*" />
+    <button onclick="uploadFiles()">📤 Nahrát označené soubory</button>
+    <div class="actions">
+      <button onclick="deleteSelected()">🗑️ Smazat označené</button>
+      <span id="status"></span>
+    </div>
+  </div>
+
+  <div class="main-content">
+    <div class="gallery" id="gallery"></div>
+  </div>
+
+  <script>
+    const API = 'http://10.0.0.25:5000';
+    let selected = new Set();
+
+    async function fetchGallery() {
+      const res = await fetch(`${API}/media?start=0&count=999`);
+      const files = await res.json();
+      const gallery = document.getElementById('gallery');
+      gallery.innerHTML = '';
+      selected.clear();
+      files.forEach(file => {
+        const div = document.createElement('div');
+        div.className = 'media-item';
+        div.title = file;
+        div.onclick = () => {
+          div.classList.toggle('selected');
+          selected.has(file) ? selected.delete(file) : selected.add(file);
+        };
+
+        const ext = file.split('.').pop().toLowerCase();
+        if (['mp4', 'mov'].includes(ext)) {
+          const vid = document.createElement('video');
+          vid.src = `${API}/media/${encodeURIComponent(file)}`;
+          vid.controls = true;
+          vid.muted = true;
+          div.appendChild(vid);
+        } else {
+          const img = document.createElement('img');
+          img.src = `${API}/media/${encodeURIComponent(file)}`;
+          div.appendChild(img);
+        }
+
+        gallery.appendChild(div);
+      });
+    }
+
+    async function deleteSelected() {
+      if (selected.size === 0) {
+        alert('Nejsou označeny žádné soubory!');
+        return;
+      }
+      if (!confirm(`Opravdu smazat ${selected.size} souborů?`)) return;
+      const files = Array.from(selected);
+      const res = await fetch(`${API}/delete`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ files })
+      });
+      const data = await res.json();
+      document.getElementById('status').innerText = `Smazáno: ${data.deleted.length} souborů.`;
+      selected.clear();
+      fetchGallery();
+    }
+
+    async function uploadFiles() {
+      const input = document.getElementById('uploadInput');
+      if (!input.files.length) return;
+
+      for (const file of input.files) {
+        const formData = new FormData();
+        formData.append('file', file);
+        await fetch(`${API}/upload`, {
+          method: 'POST',
+          body: formData
+        });
+      }
+      input.value = '';
+      document.getElementById('status').innerText = '✅ Nahráno!';
+      fetchGallery();
+    }
+
+    fetchGallery();
+  </script>
+</body>
+</html>
