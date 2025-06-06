@@ -84,12 +84,14 @@
     }
 
     .wifi-name {
-      background: rgba(255, 255, 255, 0.3);
+      background: rgba(255, 255, 255, 0.443);
       padding: 6px 12px;
-      border-radius: 8px;
+      border-radius: 12px;
       font-family: 'Courier New', monospace;
       display: inline-block;
       margin-top: 10px;
+      color:#575757;
+      font-weight: bold;
     }
 
     .qr-section {
@@ -97,9 +99,10 @@
     }
 
     .qr-code {
-      width: 150px;
-      height: 150px;
+      width: 250px;
+      height: 250px;
       margin: 0 auto;
+      padding: 15px 0 0 0;
       background: white;
       border-radius: 15px;
       overflow: hidden;
@@ -137,7 +140,7 @@
         <div class="step-number">1</div>
         <h3>Připojte se k WiFi</h3>
         <p>Najděte síť:</p>
-        <div class="wifi-name">Yehlas Photos</div>
+        <div class="wifi-name">YehlasPhotos</div>
       </div>
       <div class="step">
         <div class="step-number">2</div>
@@ -158,23 +161,24 @@
     let mediaList = [];
     let currentIndex = 0;
     const mediaContainer = document.getElementById('mediaContainer');
-
+  
     async function fetchMedia() {
       const res = await fetch(`${API_BASE}/media?start=0&count=999`);
       const files = await res.json();
       mediaList = files.filter(f => /\.(jpe?g|png|gif|mp4|mov)$/i.test(f));
     }
-
-    function playNextMedia() {
+  
+    async function playNextMedia() {
       if (mediaList.length === 0) return;
-
+  
       const file = mediaList[currentIndex];
       const isVideo = /\.(mp4|mov)$/i.test(file);
       const src = `${API_BASE}/media/${encodeURIComponent(file)}`;
       mediaContainer.innerHTML = '';
-
+  
       const el = document.createElement(isVideo ? 'video' : 'img');
       el.src = src;
+  
       if (isVideo) {
         el.autoplay = true;
         el.controls = false;
@@ -183,21 +187,29 @@
       } else {
         setTimeout(next, 6000);
       }
-
+  
       mediaContainer.appendChild(el);
     }
-
-    function next() {
-      currentIndex = (currentIndex + 1) % mediaList.length;
+  
+    async function next() {
+      currentIndex++;
+  
+      // Když jsme na konci seznamu, načti ho znovu a začni od začátku
+      if (currentIndex >= mediaList.length) {
+        await fetchMedia();
+        currentIndex = 0;
+      }
+  
       playNextMedia();
     }
-
+  
     async function startSlideshow() {
       await fetchMedia();
       playNextMedia();
     }
-
+  
     startSlideshow();
   </script>
+  
 </body>
 </html>
